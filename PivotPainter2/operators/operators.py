@@ -31,7 +31,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
 
 
 
-        # Create list of UVs
+        # Create list of UVsss
         resolution_x = resolution[0]
         resolution_y = resolution[1]
 
