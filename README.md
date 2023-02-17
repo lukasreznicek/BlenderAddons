@@ -7,7 +7,8 @@ General set of tools for workflow simplification inside Blender.
 
 LR Exporter
 
-Static mesh exporter 
+Static mesh exporter.
+
 
 
 Pivot Painter 2 
