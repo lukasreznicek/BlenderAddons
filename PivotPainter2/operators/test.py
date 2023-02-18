@@ -1,39 +1,38 @@
-import math,random
+import math,random, numpy, bitstring
 import numpy as np
 
-def findTextureDimensions(ObjectToProcessCount):
- 
-    DecrementerTotal = 1600 #small enough to avoid uv precision issues without using high precision values
-    evenNumber = (ObjectToProcessCount%2.0)==0
-    HalfEvenNumber = ((ObjectToProcessCount/2.0)%2.0)==0
-    HalfNumber = math.ceil(ObjectToProcessCount/2.0)
-    modResult = 1
-    RowCounter = 1
-    newDecrementerTotal = HalfNumber if HalfNumber < DecrementerTotal else DecrementerTotal
-    decrementAmount =  2 if HalfEvenNumber == True else 1
-    complete = False
 
-    while complete == False:
-        modResult = ObjectToProcessCount%newDecrementerTotal
-        complete = modResult == 0 or newDecrementerTotal < 1 
-        
-        if complete== False:
-            newDecrementerTotal-=decrementAmount 
-        if newDecrementerTotal < 1:
-            newDecrementerTotal=1
+from ast import literal_eval
+
+float_str = "-0b101010101"
+result = float(literal_eval(float_str))
+
+
+
+
+def packTextureBits(f16):
+    f16= int(f16)
+    f16+=1024
+    sign = (f16 & 0x8000)<<16
     
-    if newDecrementerTotal==1 or ((ObjectToProcessCount/newDecrementerTotal)>DecrementerTotal):
-            y=math.floor(math.sqrt(ObjectToProcessCount))
-            x=math.ceil((ObjectToProcessCount/math.floor(y)))
-            return [int(x),int(y)]
+
+    if (f16 & 0x7fff) == 0:
+        expVar = 0
     else:
-        return [int(newDecrementerTotal),int((ObjectToProcessCount/newDecrementerTotal))]
+        expVar = ((((f16 >> 10)& 0x1f)-15+127)<< 23)
+     
+    mant =(f16 & 0x3ff)<< 13
+    f16= (sign | expVar) | mant
+
+    #16-bit int to 32-bit float
+
+    
+    tmp=numpy.array(f16, dtype=numpy.int32)
+    tmp.dtype = numpy.float32
+
+    return tmp
 
 
 
 
-print(findTextureDimensions(855))
-
-# NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
-
-
+print(packTextureBits(32))

@@ -59,9 +59,8 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         # ----------------------------------
 
 
-
         #EDIT UVs ----------------------------
-        
+
         uv_index = 1 #Including 0
         uv_pp_name = 'PPIndex'
         
@@ -122,15 +121,6 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             #clamp (curVal/(16.0 * 256.0)) 0.005 1.0 # 16 * 256  with a min scale of 16 or the smallest possible unit without hitting 0
 
 
-        #Universal
-        def constantBiasScaleScalar(my_scalar):
-            return (my_scalar+1.0)/2.0
-
-
-        def findConstantBiasScaleVectorValues(objectArray):
-            normalizedI = objectArray
-            return [constantBiasScaleScalar(normalizedI[0]),(1.0-(constantBiasScaleScalar(normalizedI[1]))),constantBiasScaleScalar(normalizedI[2])]
-
 	    def pixels_for_alpha_find_parent_object_array_index(object_array): #Parent Index ( Float - Up to 2048 )
             array_index = []
             for obj in object_array:
@@ -141,24 +131,46 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             return array_index
 
 
+        #Universal
+        def constantBiasScaleScalar(my_scalar):
+            return (my_scalar+1.0)/2.0
 
-        # #packTextureBits f16
-        # def packTextureBits():
-        #     f16= f16 as integer
-        #     f16+=1024
-        #     sign = bit.shift  (bit.and f16 0x8000) 16
-        #     expVar =if (bit.and f16 0x7fff) == 0 then (0) else (bit.shift ((bit.and (bit.shift f16 -10) 0x1f)-15+127) 23)
-        #     mant =bit.shift (bit.and f16 0x3ff) 13
-        #     f16= bit.or (bit.or sign expVar) mant 
-        #     bit.intAsFloat f16  
+
+        def findConstantBiasScaleVectorValues(objectArray):
+            normalizedI = objectArray
+            return [constantBiasScaleScalar(normalizedI[0]),(1.0-(constantBiasScaleScalar(normalizedI[1]))),constantBiasScaleScalar(normalizedI[2])]
 
 
 
-        # def pack_ints_into_floats(value_array):
-        #     tArray=[]
-        #     for value in value_array:
-        #         tArray.append(packTextureBits(value))
-        #     return tArray
+
+        #packTextureBits f16
+        def packTextureBits(f16):
+            f16= int(f16)
+            f16+=1024
+            sign = (f16 & 0x8000)<<16
+
+            if (f16 & 0x7fff) == 0:
+                expVar = 0
+            else:
+                expVar = ((((f16 >> 10)& 0x1f)-15+127)<< 23)
+            
+            mant =(f16 & 0x3ff)<< 13
+            f16= (sign | expVar) | mant
+            tmp=numpy.array(f16, dtype=numpy.int32)
+            tmp.dtype = numpy.float32
+            return tmp
+
+        def packVectorIntsIntoFloats (objectArray):
+            tArray=[]
+            for i in objectArray:
+                tArray.append([packTextureBits i[1],packTextureBits i[2],packTextureBits i[3]])
+            return tArray
+
+        def pack_ints_into_floats(value_array):
+            tArray=[]
+            for value in value_array:
+                tArray.append(packTextureBits(value))
+            return tArray
 
 
         def create_image(name,image_format, pixels,alpha_values = None, resolution=None, hdr = False, sRGB = False, alpha = True, image_location = None):
@@ -281,7 +293,9 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         #---- IMAGE 1 Alpha ----
 
             if myprops.image_1_alpha == 'OP1': #Parent Index (Int as Float)
-                img_alpha_values = None
+                temp = pixels_for_alpha_find_parent_object_array_index(object_list)
+                for value in pixels_for_alpha_find_parent_object_array_index:
+                    img_alpha_values.append(pack_ints_into_floats(value))
             
             if myprops.image_1_alpha == 'OP3': #Random 0-1 Value Per Element
                 img_alpha_values = pixels_for_alpha_random_value_per_element(len(object_list))
