@@ -61,7 +61,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
 
         #EDIT UVs ----------------------------
 
-        uv_index = 1 #Including 0
+        uv_index = myprops.uv_coordinate-1 
         uv_pp_name = 'PPIndex'
         
         for index,obj in enumerate(object_list):
@@ -211,10 +211,16 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             if alpha_name == None:
                 alpha_name = ''
 
+
             if image_location == None:
                 image_location = bpy.path.abspath('//')
+
             elif image_location.startswith('//'):
                 image_location = bpy.path.abspath(image_location)
+
+            else:
+                image_location = bpy.path.abspath(image_location)
+
 
             if bpy.data.is_saved == False:
                 self.report({'ERROR'}, 'Please save blender file. Aborting.')
@@ -261,13 +267,13 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             # Assign pixels
             image.pixels = pixels
 
-            # Write Image
-            blender_file_location = image_location
 
-            image.filepath_raw = blender_file_location+rgb_name+alpha_name+img_extension
+            
+            # Write Image
+            image.filepath_raw = os.path.join(image_location,rgb_name+alpha_name+img_extension)
             image.file_format = image_format
             image.save()
-            return size
+
         
 
 
@@ -276,6 +282,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         image_name_base = object_list[0].name
         image_rgb_props = [myprops.image_1_rgb, myprops.image_2_rgb]
         image_alpha_props = [myprops.image_1_alpha, myprops.image_2_alpha]  
+        
         # ---- IMAGE 1 RGB ----
 
         for prop_rgb,prop_alpha in zip(image_rgb_props,image_alpha_props):

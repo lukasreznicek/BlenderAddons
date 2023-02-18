@@ -86,8 +86,7 @@ def img2_alpha_callback(scene, context):
 # To acess properties: bpy.data.scenes['Scene'].pivot_painter_2
 # Is assigned by pointer property below in class registration.
 class pivot_painter2_settings(bpy.types.PropertyGroup):
-    # export_sm_prefix: bpy.props.StringProperty(name="Prefix", description="Name of the new UV set on selected", default="SM_", maxlen=1024,)
-    # export_sm_suffix:bpy.props.StringProperty(name="Suffix", description="Name of the new UV set on selected", default="", maxlen=1024,)
+
 
     image_1_rgb:bpy.props.EnumProperty(name= 'RGB', description= '',default = 1, items= [
     ('OP0', 'Do Not Render',''),
@@ -108,62 +107,13 @@ class pivot_painter2_settings(bpy.types.PropertyGroup):
     ('OP5', 'Y Vector(8-bit)',''),
     ('OP6', 'Z Vector(8-bit)','')])
 
-    
+
     image_2_alpha:bpy.props.EnumProperty(name= 'Alpha', description= '', items= img2_alpha_callback)
 
     export_path:bpy.props.StringProperty(name="Folder", description="Texture output location. \n// = .blend file location\n//..\ = .blend file parent folder", default="//", maxlen=1024,subtype='DIR_PATH')
-    select_texture_coordinate: bpy.props.IntProperty(name="Texture Coordinate", description="Location of Pivot Painter custom UVs", default=1, min = 1, soft_max = 5)
+    uv_coordinate: bpy.props.IntProperty(name="Texture Coordinate", description="Location of Pivot Painter custom UVs. Starts with 1", default=2, min = 1, soft_max = 5)
     
-    #image_2_alpha:bpy.props.EnumProperty(name= 'Alpha', description= '', items= [('OP1', 'Parent Index (Int as Float)',''),('OP2', 'Number Of Steps From Root',''),('OP3', 'Random 0-1 Value Per Element','')])
 
-
-    #texture_coordinate:bpy.props.EnumProperty(name= 'Export Type', description= '', items= [('OP1', 'Option 1',''),('OP2', 'Option 2',''),('OP3', 'Option 3','')])
-    # lr_assembly_replace_file: bpy.props.BoolProperty(name="Replace File", default=True)
-    # lr_assembly_filename: bpy.props.StringProperty(name="JSON filename", default = 'Assembly')
-
-
-
-    # name_to_uv_index_set: bpy.props.StringProperty(name="  Name", description="Set uv index by name", default="UVMap Name", maxlen=1024,)
-    # uv_map_rename: bpy.props.StringProperty(name="  To", description="Rename uv on selected objects", default="New Name", maxlen=1024,)
-    # uv_map_delete_by_name: bpy.props.StringProperty(name="  Name", description="Name of the UV Map to delete on selected objects", default="UV Name", maxlen=1024,)
-
-    # remove_uv_index: bpy.props.IntProperty(name="Index to remove", description="UV Map index to remove on selected objects", default=1, min = 1, soft_max = 5)
-    # vertex_color_offset_amount: bpy.props.FloatProperty(name="Offset amount", default=0.1, min = 0, max = 1)
-    # lr_vc_swatch: FloatVectorProperty(name="object_color",subtype='COLOR',default=(1.0, 1.0, 1.0),min=0.0, max=1.0,description="color picker")
-    # lr_vc_alpha_swatch: bpy.props.FloatProperty(name="Alpha Value", step = 5, default=0.5, min = 0, max = 1)
-
-
-
-#UI -------------------------------------------------------------------------------------
-# class VIEW3D_PT_pivot_painter2_setup(bpy.types.Panel):
-#     bl_label = "PivotPainter2"
-#     bl_idname = "OBJECT_PT_pivot_painter_setup"
-#     bl_space_type = 'VIEW_3D'
-#     bl_region_type = 'UI'
-#     bl_category = 'PivotPainter2'
-
-
-
-
-
-#     def draw(self, context):
-
-#         #pivot_painter_2 = context.scene.pivot_painter_2
-
-#         layout = self.layout.box()
-#         # layout.label(text="Settings")
-
-
-
-#         #EXPORT MODE TEMP DISABLED
-#         # row = layout.row(align=True)
-#         # if context.object:
-#         #     row.prop(context.object,'pivot_painter_2_type')
-#         row = layout.row(align=True)
-        
-#         if context.object:
-#             row.prop(context.object,'lr_exportsubfolder')
- 
 
 
 class VIEW3D_PT_pivot_painter2(bpy.types.Panel):
@@ -172,55 +122,6 @@ class VIEW3D_PT_pivot_painter2(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'PivotPainter2'
-
-
-    # bpy.types.Object.lr_export_type = EnumProperty(
-    #     name="Export mode",
-    #     description="Export mode",
-    #     override={'LIBRARY_OVERRIDABLE'},
-    #     items=[
-    #         ("auto",
-    #             "Auto",
-    #             "Export with the parent if the parents is \"Export recursive\"",
-    #             "BOIDS",
-    #             1),
-    #         ("export_recursive",
-    #             "Export recursive",
-    #             "Export self object and all children",
-    #             "KEYINGSET",
-    #             2),
-    #         ("dont_export",
-    #             "Not exported",
-    #             "Will never export",
-    #             "CANCEL",
-    #             3)
-    #         ]
-    #     )
-
-    # bpy.types.Object.lr_exportsubfolder = StringProperty(
-    #     name="Sub folder name",
-    #     description=(
-    #         'The name of sub folder.' +
-    #         ' You can now use ../ for up one directory.'
-    #         ),
-    #     override={'LIBRARY_OVERRIDABLE'},
-    #     maxlen=64,
-    #     default="",
-    #     subtype='FILE_NAME'
-    #     )
-
-
-    # bpy.types.Object.lr_export_reset_position = BoolProperty(
-    #     name="Move to zero",
-    #     description=('Main object will be positioned to zero before exporting'),
-    #     default=True
-    #     )
-
-    # bpy.types.Object.lr_export_reset_rotation = BoolProperty(
-    #     name="Reset Rotation",
-    #     description=('Main object rotation will have rotation set to zero'),
-    #     default=True
-    #     )
 
 
     def draw(self, context):
@@ -232,7 +133,7 @@ class VIEW3D_PT_pivot_painter2(bpy.types.Panel):
         layout.label(text="UVs")
 
         row = layout.row(align=True)
-        row.prop(pivot_painter_2, "select_texture_coordinate")
+        row.prop(pivot_painter_2, "uv_coordinate")
 
 
 
@@ -267,12 +168,6 @@ class VIEW3D_PT_pivot_painter2(bpy.types.Panel):
         row = layout.row(align=True)
         row.scale_y = 2
         row.operator("object.lr_pivot_painter_export", text="Process Hierarchy", icon = 'EXPORT')
-
-
-
-
-
-        
 
 
 classes = [pivot_painter2_settings,VIEW3D_PT_pivot_painter2, OBJECT_OT_lr_pivot_painter_export]
