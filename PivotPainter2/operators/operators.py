@@ -279,15 +279,12 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             image.pixels = pixels
 
 
-
             # Write Image
-            image.filepath_raw = os.path.join(image_location,rgb_name+alpha_name+img_extension)
+            image.filepath_raw = os.path.join(image_location,rgb_name+'_'+alpha_name+img_extension)
             image.file_format = image_format
             image.save()
 
         
-
-
         #ASSEMBLY
         image_name_prefix = 'T_'
         image_name_base = object_list[0].name
@@ -304,24 +301,24 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                     img_hdr = True
                     img_is_data = True
                     img_format = 'OPEN_EXR'
-                    img_name = f'{image_name_prefix}{image_name_base}_PivPos16bit_UV{uv_index}'
+                    img_name = f'{image_name_prefix}{image_name_base}_PivPos16bit'
     
                 if prop_rgb == 'OP4': #X Vector (8-bit)
-                    img_name = f'{image_name_prefix}{image_name_base}_XVector8bit_UV{uv_index}'
+                    img_name = f'{image_name_prefix}{image_name_base}_XVector8bit'
                     img_pixels = pixels_for_vector_ld(object_list,0)
                     img_hdr = False
                     img_is_data = True
                     img_format = 'TARGA'
 
                 if prop_rgb == 'OP5': #Y Vector (8-bit)
-                    img_name = f'{image_name_prefix}{image_name_base}_YVector8bit_UV{uv_index}'
+                    img_name = f'{image_name_prefix}{image_name_base}_YVector8bit'
                     img_pixels = pixels_for_vector_ld(object_list,1)
                     img_hdr = False
                     img_is_data = True
                     img_format = 'TARGA'
 
                 if prop_rgb == 'OP6': #Z Vector (8-bit)
-                    img_name = f'{image_name_prefix}{image_name_base}_ZVector8bit_UV{uv_index}'
+                    img_name = f'{image_name_prefix}{image_name_base}_ZVector8bit'
                     img_pixels = pixels_for_vector_ld(object_list,2)
                     img_hdr = False
                     img_is_data = True
@@ -332,31 +329,31 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
 
                 if prop_alpha == 'OP1': #Parent Index (Int as Float)
                     img_alpha_values=pack_ints_into_floats(pixels_for_alpha_find_parent_object_array_index(object_list))
-                    img_alpha_name = 'ParentIndex'
+                    img_alpha_name = 'ParentIndexInt_UV'+str(uv_index+1)
 
                 if prop_alpha == 'OP3': #Random 0-1 Value Per Element
                     img_alpha_values = pixels_for_alpha_random_value_per_element(len(object_list))
-                    img_alpha_name = 'Random0-1Value'
+                    img_alpha_name = 'Random0-1Value_UV'+str(uv_index+1)
 
                 if prop_alpha == 'OP6': #Normalized 0-1 Hierarchy position
                     img_alpha_values = flatten_int_to_0to1_float([find_number_of_steps_to_base_parent(i) for i in object_list])
-                    img_alpha_name = 'HierarchyPosition0-1'
+                    img_alpha_name = 'HierarchyPosition0-1_UV'+str(uv_index+1)
                     
                 if prop_alpha == 'OP10': #Parent Index ( Float - Up to 2048 )
                     img_alpha_values = pixels_for_alpha_find_parent_object_array_index(object_list)
-                    img_alpha_name = 'ParentIndexInt'
+                    img_alpha_name = 'ParentIndexFloat_UV'+str(uv_index+1)
 
                 if prop_alpha == 'OP11': #X Extent Divided by 2048 - 2048 Max
                     img_alpha_values = findMaxBoundingBoxDistanceAlongVector(object_list,0,True)
-                    img_alpha_name = 'ParentIndexInt'
+                    img_alpha_name = 'XExtentDividedby2048_UV'+str(uv_index+1)
 
                 if prop_alpha == 'OP12': #Y Extent Divided by 2048 - 2048 Max
                     img_alpha_values = findMaxBoundingBoxDistanceAlongVector(object_list,1,True)
-                    img_alpha_name = 'ParentIndexInt'
+                    img_alpha_name = 'YExtentDividedby2048_UV'+str(uv_index+1)
 
                 if prop_alpha == 'OP13': #Z Extent Divided by 2048 - 2048 Max
                     img_alpha_values = findMaxBoundingBoxDistanceAlongVector(object_list,2,True)
-                    img_alpha_name = 'ParentIndexInt'
+                    img_alpha_name = 'YExtentDividedby2048_UV'+str(uv_index+1)
 
                 #print(f'create_image(rgb_name ={img_name},alpha_name= img_alpha_name, image_format = {img_format}, resolution={resolution}, pixels = {img_pixels}, alpha_values = img_alpha_values, hdr = {img_hdr}, sRGB = {img_sRGB},image_location=myprops.export_path)')
                 create_image(rgb_name =img_name,alpha_name= img_alpha_name, image_format = img_format, resolution=resolution, pixels = img_pixels, alpha_values = img_alpha_values, hdr = img_hdr, is_data = img_is_data,image_location=myprops.export_path)
