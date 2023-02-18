@@ -111,13 +111,27 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             return rand_val
 
         #Alpa Stuff
-        def extend_divided_by2048():
-            pass
 
-        def wrapFindMaxBoundingDistanceWithLDScale(curVal):
-            (clamp(ceil(curVal/8.0))) / 256.0 # up to 2048 units
-            #clamp (curVal/(16.0 * 256.0)) 0.005 1.0 # 16 * 256  with a min scale of 16 or the smallest possible unit without hitting 0
-            pass
+        def clamp(num,cMin,cMax):
+            result = num
+            if result < cMin:
+                result = cMin
+            else:
+                if result > cMax:
+                    result = cMax
+            return result
+
+        def findMaxBoundingBoxDistanceAlongVector(objects,axis,ld = False):
+            #Werified works
+            maxdist_list = []
+            for obj in objects:
+                maxdist = obj.dimensions[axis]*100 #Convert to cm
+                if ld == True:
+                    maxdist = (clamp(math.ceil(maxdist/8.0),1.0,256.0) / 256.0) #compress to up to 2048
+                maxdist_list.append(maxdist)
+
+            return maxdist_list
+
 
         def pixels_for_alpha_find_parent_object_array_index(object_array): #Parent Index ( Float - Up to 2048 )
             array_index = []
@@ -334,6 +348,12 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                 if prop_alpha == 'OP10': #Parent Index ( Float - Up to 2048 )
                     img_alpha_values = pixels_for_alpha_find_parent_object_array_index(object_list)
                     img_alpha_name = 'ParentIndexInt'
+
+                if prop_alpha == 'OP11': #X Extent Divided by 2048 - 2048 Max
+                    img_alpha_values = findMaxBoundingBoxDistanceAlongVector(object_list,0,True)
+                    img_alpha_name = 'ParentIndexInt'
+
+                    findMaxBoundingBoxDistanceAlongVector
 
                 create_image(rgb_name =img_name,alpha_name= None, image_format = img_format, resolution=resolution, pixels = img_pixels, alpha_values = img_alpha_values, hdr = img_hdr, sRGB = img_sRGB,image_location=myprops.export_path)
             

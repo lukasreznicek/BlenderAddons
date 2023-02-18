@@ -50,7 +50,7 @@ def img1_alpha_callback(scene, context):
     elif painter2.image_1_rgb == 'OP4' or painter2.image_1_rgb == 'OP5' or painter2.image_1_rgb == 'OP6': #HDR
         items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
         items.append(('OP3', 'Random 0-1 Value Per Element',''))
-        # items.append(('OP11', 'X Extent Divided by 2048 - 2048 Max',''))
+        items.append(('OP11', 'X Extent Divided by 2048 - 2048 Max',''))
         # items.append(('OP12', 'Y Extent Divided by 2048 - 2048 Max',''))
         # items.append(('OP13', 'Z Extent Divided by 2048 - 2048 Max',''))
     return items
@@ -75,11 +75,12 @@ def img2_alpha_callback(scene, context):
         items.append(('OP10', 'Parent Index (Float - Up to 2048)',''))
 
     elif painter2.image_2_rgb == 'OP4' or painter2.image_2_rgb == 'OP5' or painter2.image_2_rgb == 'OP6': #HDR
-        items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
-        items.append(('OP3', 'Random 0-1 Value Per Element',''))
-        # items.append(('OP11', 'X Extent Divided by 2048 - 2048 Max',''))
+        items.append(('OP11', 'X Extent Divided by 2048 - 2048 Max',''))
         # items.append(('OP12', 'Y Extent Divided by 2048 - 2048 Max',''))
         # items.append(('OP13', 'Z Extent Divided by 2048 - 2048 Max',''))
+        items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
+        items.append(('OP3', 'Random 0-1 Value Per Element',''))
+
     return items
 
 # Properties 
@@ -98,7 +99,7 @@ class pivot_painter2_settings(bpy.types.PropertyGroup):
     ('OP6', 'Z Vector(8-bit)','')])
     image_1_alpha:bpy.props.EnumProperty(name= 'Alpha', description= '', items= img1_alpha_callback)
  
-    image_2_rgb:bpy.props.EnumProperty(name= 'RGB', description= '',default = 4, items= [
+    image_2_rgb:bpy.props.EnumProperty(name= 'RGB', description= '',default = 2, items= [
     ('OP0', 'Do Not Render',''),
     ('OP1', 'Pivot Position (16-bit)',''),
     #('OP2', 'Origin Position(16-bit)',''),
