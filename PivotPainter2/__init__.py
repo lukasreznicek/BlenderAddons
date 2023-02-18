@@ -36,7 +36,7 @@ def img1_alpha_callback(scene, context):
     if painter2.image_1_rgb == 'OP0':
         items = []
     elif painter2.image_1_rgb == 'OP1' or painter2.image_1_rgb == 'OP2' or painter2.image_1_rgb == 'OP3':
-        #items.append(('OP1', 'Parent Index (Int as Float)',''))
+        items.append(('OP1', 'Parent Index (Int as Float)',''))
         # items.append(('OP2', 'Number of Steps From Root',''))
         # items.append(('OP3', 'Random 0-1 Value Per Element',''))
         # items.append(('OP4', 'Bounding Box Diameter',''))
