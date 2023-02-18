@@ -85,7 +85,8 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         def pixels_for_pivot_position_16_bit(objects):
             pixels= []            
             for i in range(0,len(objects)):
-                pixels.append([objects[i].location[0]*100, ((objects[i].location[1]*100)*-1)+1, objects[i].location[2]*100])
+                pixels.append([objects[i].location[0]*100, (1-(objects[i].location[1]*100)), objects[i].location[2]*100])
+
             return pixels
 
 
@@ -137,9 +138,9 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             array_index = []
             for obj in object_array:
                 if obj.parent == None:
-                    array_index.append(object_array.index(obj)-0.5)
+                    array_index.append(object_array.index(obj)+0.5)
                 else:
-                    array_index.append(object_array.index(obj.parent)-0.5)
+                    array_index.append(object_array.index(obj.parent)+0.5)
             return array_index
 
 
@@ -199,7 +200,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             return tArray
 
 
-        def create_image(rgb_name = None,alpha_name = None,image_format ='TARGA', pixels = None,alpha_values = None, resolution=None, hdr = False, sRGB = False, alpha = True, image_location = None):
+        def create_image(rgb_name = None,alpha_name = None,image_format ='TARGA', pixels = None,alpha_values = None, resolution=None, hdr = False, is_data = False, alpha = True, image_location = None):
             ''' name: str
                 image_format: TARGA,OPEN_EXR
                 pixels: [[R,G,B,A],[R,G,B,A],[R,G,B,A]...]
@@ -251,11 +252,6 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                 rgb_name = 'PivotPainterImage'
 
 
-            #Create resolution for an Image
-            if resolution == None:
-                size = utils.find_texture_dimensions(len(pixels))
-            else:
-                size = resolution
 
 
             #Empty Pixels value
@@ -263,26 +259,27 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
 
 
             #Fill remaining pixels with black
-            redundant_pixes_amount = size[0]*size[1]-len(pixels)
+            redundant_pixes_amount = resolution[0]*resolution[1]-len(pixels)
             for i in range(0,redundant_pixes_amount):
                 pixels.append(empty_pixel)
 
 
             #Flip image vertically using numpy (blender by default starts in bottom left corner)
             np_array = numpy.array(pixels)
-            np_array = np_array.reshape(size[1],size[0],4)
+            np_array = np_array.reshape(resolution[1],resolution[0],4)
             np_array = numpy.flipud(np_array)
             np_array = np_array.flatten()
             pixels = np_array.tolist()
 
+            #print(f'bpy.data.images.new(rgb_name, width=resolution[0], height=resolution[1], alpha = True, float_buffer={hdr}, is_data = {sRGB})')
             # Create blank Image
-            image = bpy.data.images.new(rgb_name, width=size[0], height=size[1], alpha = True, float_buffer=hdr, is_data = sRGB)
+            image = bpy.data.images.new(rgb_name, width=resolution[0], height=resolution[1], alpha = True, float_buffer=hdr, is_data = is_data)
 
             # Assign pixels
             image.pixels = pixels
 
 
-            
+
             # Write Image
             image.filepath_raw = os.path.join(image_location,rgb_name+alpha_name+img_extension)
             image.file_format = image_format
@@ -305,33 +302,33 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                 if prop_rgb == 'OP1': #Pivot Position (16-bit)
                     img_pixels = pixels_for_pivot_position_16_bit(object_list)
                     img_hdr = True
-                    img_sRGB = False
+                    img_is_data = True
                     img_format = 'OPEN_EXR'
-                    img_name = f'{image_name_prefix}{image_name_base}_PivotPosition16bit_UV{uv_index}'
+                    img_name = f'{image_name_prefix}{image_name_base}_PivPos16bit_UV{uv_index}'
     
                 if prop_rgb == 'OP4': #X Vector (8-bit)
                     img_name = f'{image_name_prefix}{image_name_base}_XVector8bit_UV{uv_index}'
                     img_pixels = pixels_for_vector_ld(object_list,0)
                     img_hdr = False
-                    img_sRGB = False
+                    img_is_data = True
                     img_format = 'TARGA'
 
                 if prop_rgb == 'OP5': #Y Vector (8-bit)
                     img_name = f'{image_name_prefix}{image_name_base}_YVector8bit_UV{uv_index}'
                     img_pixels = pixels_for_vector_ld(object_list,1)
                     img_hdr = False
-                    img_sRGB = False
+                    img_is_data = True
                     img_format = 'TARGA'
 
                 if prop_rgb == 'OP6': #Z Vector (8-bit)
                     img_name = f'{image_name_prefix}{image_name_base}_ZVector8bit_UV{uv_index}'
                     img_pixels = pixels_for_vector_ld(object_list,2)
                     img_hdr = False
-                    img_sRGB = False
+                    img_is_data = True
                     img_format = 'TARGA'
 
 
-            #---- IMAGE 1 Alpha ----
+                    #---- IMAGE 1 Alpha ----
 
                 if prop_alpha == 'OP1': #Parent Index (Int as Float)
                     img_alpha_values=pack_ints_into_floats(pixels_for_alpha_find_parent_object_array_index(object_list))
@@ -353,9 +350,16 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                     img_alpha_values = findMaxBoundingBoxDistanceAlongVector(object_list,0,True)
                     img_alpha_name = 'ParentIndexInt'
 
-                    findMaxBoundingBoxDistanceAlongVector
+                if prop_alpha == 'OP12': #Y Extent Divided by 2048 - 2048 Max
+                    img_alpha_values = findMaxBoundingBoxDistanceAlongVector(object_list,1,True)
+                    img_alpha_name = 'ParentIndexInt'
 
-                create_image(rgb_name =img_name,alpha_name= None, image_format = img_format, resolution=resolution, pixels = img_pixels, alpha_values = img_alpha_values, hdr = img_hdr, sRGB = img_sRGB,image_location=myprops.export_path)
+                if prop_alpha == 'OP13': #Z Extent Divided by 2048 - 2048 Max
+                    img_alpha_values = findMaxBoundingBoxDistanceAlongVector(object_list,2,True)
+                    img_alpha_name = 'ParentIndexInt'
+
+                #print(f'create_image(rgb_name ={img_name},alpha_name= img_alpha_name, image_format = {img_format}, resolution={resolution}, pixels = {img_pixels}, alpha_values = img_alpha_values, hdr = {img_hdr}, sRGB = {img_sRGB},image_location=myprops.export_path)')
+                create_image(rgb_name =img_name,alpha_name= img_alpha_name, image_format = img_format, resolution=resolution, pixels = img_pixels, alpha_values = img_alpha_values, hdr = img_hdr, is_data = img_is_data,image_location=myprops.export_path)
             
 
 

@@ -51,8 +51,8 @@ def img1_alpha_callback(scene, context):
         items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
         items.append(('OP3', 'Random 0-1 Value Per Element',''))
         items.append(('OP11', 'X Extent Divided by 2048 - 2048 Max',''))
-        # items.append(('OP12', 'Y Extent Divided by 2048 - 2048 Max',''))
-        # items.append(('OP13', 'Z Extent Divided by 2048 - 2048 Max',''))
+        items.append(('OP12', 'Y Extent Divided by 2048 - 2048 Max',''))
+        items.append(('OP13', 'Z Extent Divided by 2048 - 2048 Max',''))
     return items
 
 
@@ -76,8 +76,8 @@ def img2_alpha_callback(scene, context):
 
     elif painter2.image_2_rgb == 'OP4' or painter2.image_2_rgb == 'OP5' or painter2.image_2_rgb == 'OP6': #HDR
         items.append(('OP11', 'X Extent Divided by 2048 - 2048 Max',''))
-        # items.append(('OP12', 'Y Extent Divided by 2048 - 2048 Max',''))
-        # items.append(('OP13', 'Z Extent Divided by 2048 - 2048 Max',''))
+        items.append(('OP12', 'Y Extent Divided by 2048 - 2048 Max',''))
+        items.append(('OP13', 'Z Extent Divided by 2048 - 2048 Max',''))
         items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
         items.append(('OP3', 'Random 0-1 Value Per Element',''))
 
