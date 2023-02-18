@@ -103,8 +103,6 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                 pixels.append(findConstantBiasScaleVectorValues(matrix_copy_transposed[axis]))
             return pixels
 
-
-
         def pixels_for_alpha_random_value_per_element(number_of_objects):
             rand_val = []
             for value in range(0,number_of_objects):
@@ -131,6 +129,22 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             return array_index
 
 
+        def find_number_of_steps_to_base_parent(child):
+            count = 0
+            obj = child
+            while obj.parent:
+                obj = obj.parent
+                count +=1 
+            return count
+	
+        def flatten_int_to_0to1_float(int_list):
+            temp_list = []
+            maxStepCount = max(int_list)
+            for i in int_list:
+                temp_list.append(float(i)/maxStepCount)
+            return temp_list
+
+
         #Universal
         def constantBiasScaleScalar(my_scalar):
             return (my_scalar+1.0)/2.0
@@ -139,8 +153,6 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         def findConstantBiasScaleVectorValues(objectArray):
             normalizedI = objectArray
             return [constantBiasScaleScalar(normalizedI[0]),(1.0-(constantBiasScaleScalar(normalizedI[1]))),constantBiasScaleScalar(normalizedI[2])]
-
-
 
 
         #packTextureBits f16
@@ -173,7 +185,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             return tArray
 
 
-        def create_image(name,image_format, pixels,alpha_values = None, resolution=None, hdr = False, sRGB = False, alpha = True, image_location = None):
+        def create_image(rgb_name = None,alpha_name = None,image_format ='TARGA', pixels = None,alpha_values = None, resolution=None, hdr = False, sRGB = False, alpha = True, image_location = None):
             ''' name: str
                 image_format: TARGA,OPEN_EXR
                 pixels: [[R,G,B,A],[R,G,B,A],[R,G,B,A]...]
@@ -181,6 +193,10 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
 
                 returns = resolution [x,y]
             '''
+
+            if pixels == None:
+                return
+
             if alpha_values == None:
                 for pixel in pixels:
                     pixel.append(0)
@@ -192,7 +208,8 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                 else:
                     self.report({'INFO'}, 'Alpha values and Pixel values mismatch')
 
-
+            if alpha_name == None:
+                alpha_name = ''
 
             if image_location == None:
                 image_location = bpy.path.abspath('//')
@@ -210,8 +227,8 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                 img_extension = '.EXR'
 
 
-            if name is None:
-                name = 'PivotPainterImage'
+            if rgb_name is None:
+                rgb_name = 'PivotPainterImage'
 
 
             #Create resolution for an Image
@@ -219,7 +236,6 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
                 size = utils.find_texture_dimensions(len(pixels))
             else:
                 size = resolution
-
 
 
             #Empty Pixels value
@@ -240,7 +256,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             pixels = np_array.tolist()
 
             # Create blank Image
-            image = bpy.data.images.new(name, width=size[0], height=size[1], alpha = True, float_buffer=hdr, is_data = sRGB)
+            image = bpy.data.images.new(rgb_name, width=size[0], height=size[1], alpha = True, float_buffer=hdr, is_data = sRGB)
 
             # Assign pixels
             image.pixels = pixels
@@ -248,7 +264,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
             # Write Image
             blender_file_location = image_location
 
-            image.filepath_raw = blender_file_location+name+img_extension
+            image.filepath_raw = blender_file_location+rgb_name+alpha_name+img_extension
             image.file_format = image_format
             image.save()
             return size
@@ -256,106 +272,64 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
 
 
         #ASSEMBLY
-
+        image_name_prefix = 'T_'
         image_name_base = object_list[0].name
-
+        image_rgb_props = [myprops.image_1_rgb, myprops.image_2_rgb]
+        image_alpha_props = [myprops.image_1_alpha, myprops.image_2_alpha]  
         # ---- IMAGE 1 RGB ----
-        if myprops.image_1_rgb != 'OP0' : 
-            if myprops.image_1_rgb == 'OP1': #Pivot Position (16-bit)
-                img_pixels = pixels_for_pivot_position_16_bit(object_list)
-                img_hdr = True
-                img_sRGB = False
-                img_format = 'OPEN_EXR'
-                img_name = f'{image_name_base}_PivotPosition16bit_UV{uv_index}'
-   
-            if myprops.image_1_rgb == 'OP4': #X Vector (8-bit)
-                img_name = f'{image_name_base}_XVector8bit_UV{uv_index}'
-                img_pixels = pixels_for_vector_ld(object_list,0)
-                img_hdr = False
-                img_sRGB = False
-                img_format = 'TARGA'
 
-            if myprops.image_1_rgb == 'OP5': #Y Vector (8-bit)
-                img_name = f'{image_name_base}_YVector8bit_UV{uv_index}'
-                img_pixels = pixels_for_vector_ld(object_list,1)
-                img_hdr = False
-                img_sRGB = False
-                img_format = 'TARGA'
+        for prop_rgb,prop_alpha in zip(image_rgb_props,image_alpha_props):
 
-            if myprops.image_1_rgb == 'OP6': #Z Vector (8-bit)
-                img_name = f'{image_name_base}_ZVector8bit_UV{uv_index}'
-                img_pixels = pixels_for_vector_ld(object_list,2)
-                img_hdr = False
-                img_sRGB = False
-                img_format = 'TARGA'
+            if prop_rgb != 'OP0': 
+                if prop_rgb == 'OP1': #Pivot Position (16-bit)
+                    img_pixels = pixels_for_pivot_position_16_bit(object_list)
+                    img_hdr = True
+                    img_sRGB = False
+                    img_format = 'OPEN_EXR'
+                    img_name = f'{image_name_prefix}{image_name_base}_PivotPosition16bit_UV{uv_index}'
+    
+                if prop_rgb == 'OP4': #X Vector (8-bit)
+                    img_name = f'{image_name_prefix}{image_name_base}_XVector8bit_UV{uv_index}'
+                    img_pixels = pixels_for_vector_ld(object_list,0)
+                    img_hdr = False
+                    img_sRGB = False
+                    img_format = 'TARGA'
+
+                if prop_rgb == 'OP5': #Y Vector (8-bit)
+                    img_name = f'{image_name_prefix}{image_name_base}_YVector8bit_UV{uv_index}'
+                    img_pixels = pixels_for_vector_ld(object_list,1)
+                    img_hdr = False
+                    img_sRGB = False
+                    img_format = 'TARGA'
+
+                if prop_rgb == 'OP6': #Z Vector (8-bit)
+                    img_name = f'{image_name_prefix}{image_name_base}_ZVector8bit_UV{uv_index}'
+                    img_pixels = pixels_for_vector_ld(object_list,2)
+                    img_hdr = False
+                    img_sRGB = False
+                    img_format = 'TARGA'
 
 
-        #---- IMAGE 1 Alpha ----
+            #---- IMAGE 1 Alpha ----
 
-            if myprops.image_1_alpha == 'OP1': #Parent Index (Int as Float)
-                img_alpha_values = []
-                temp = pixels_for_alpha_find_parent_object_array_index(object_list)
-                img_alpha_values=pack_ints_into_floats(temp)
+                if prop_alpha == 'OP1': #Parent Index (Int as Float)
+                    img_alpha_values=pack_ints_into_floats(pixels_for_alpha_find_parent_object_array_index(object_list))
+                    img_alpha_name = 'ParentIndex'
+
+                if prop_alpha == 'OP3': #Random 0-1 Value Per Element
+                    img_alpha_values = pixels_for_alpha_random_value_per_element(len(object_list))
+                    img_alpha_name = 'Random0-1Value'
+
+                if prop_alpha == 'OP6': #Normalized 0-1 Hierarchy position
+                    img_alpha_values = flatten_int_to_0to1_float([find_number_of_steps_to_base_parent(i) for i in object_list])
+                    img_alpha_name = 'HierarchyPosition0-1'
+                    
+                if prop_alpha == 'OP10': #Parent Index ( Float - Up to 2048 )
+                    img_alpha_values = pixels_for_alpha_find_parent_object_array_index(object_list)
+                    img_alpha_name = 'ParentIndexInt'
+
+                create_image(rgb_name =img_name,alpha_name= None, image_format = img_format, resolution=resolution, pixels = img_pixels, alpha_values = img_alpha_values, hdr = img_hdr, sRGB = img_sRGB,image_location=myprops.export_path)
             
-            if myprops.image_1_alpha == 'OP3': #Random 0-1 Value Per Element
-                img_alpha_values = pixels_for_alpha_random_value_per_element(len(object_list))
-
-
-            if myprops.image_1_rgb == 'OP10': #Parent Index ( Float - Up to 2048 )
-                img_alpha_values = pixels_for_alpha_find_parent_object_array_index(object_list)
-
-
-            create_image(name =img_name, image_format = img_format, resolution=resolution, pixels = img_pixels, alpha_values = img_alpha_values, hdr = img_hdr, sRGB = img_sRGB,image_location=myprops.export_path)
-            
-
-
-        #IMAGE 2
-
-        #---- IMAGE 2 RGB ---
-
-        if myprops.image_2_rgb != 'OP0' : 
-            if myprops.image_2_rgb == 'OP1': #Pivot Position (16-bit)
-                img_pixels = pixels_for_pivot_position_16_bit(object_list)
-                img_hdr = True
-                img_sRGB = False
-                img_format = 'OPEN_EXR'
-                img_name = f'{image_name_base}_PivotPosition16bit_UV{uv_index}'
-
-
-            if myprops.image_2_rgb == 'OP4': #X Vector (8-bit)
-                img_name = f'{image_name_base}_XVector8bit_UV{uv_index}'
-                img_pixels = pixels_for_vector_ld(object_list,0)
-                img_hdr = False
-                img_sRGB = False
-                img_format = 'TARGA'
-
-
-            if myprops.image_2_rgb == 'OP5': #Y Vector (8-bit)
-                img_name = f'{image_name_base}_YVector8bit_UV{uv_index}'
-                img_pixels = pixels_for_vector_ld(object_list,1)
-                img_hdr = False
-                img_sRGB = False
-                img_format = 'TARGA'
-
-            if myprops.image_2_rgb == 'OP6': #Z Vector (8-bit)
-                img_name = f'{image_name_base}_ZVector8bit_UV{uv_index}'
-                img_pixels = pixels_for_vector_ld(object_list,2)
-                img_hdr = False
-                img_sRGB = False
-                img_format = 'TARGA'
-
-            #---- IMAGE 2 Alpha ----
-
-            if myprops.image_2_alpha == 'OP3': #Random 0-1 Value Per Element
-                img_alpha_values = pixels_for_alpha_random_value_per_element(len(object_list))
-
-            if myprops.image_1_rgb == 'OP10': #Parent Index ( Float - Up to 2048 )
-                img_alpha_values = pixels_for_alpha_find_parent_object_array_index(object_list)
-
-
-
-            create_image(name =img_name, image_format = img_format,resolution=resolution, pixels = img_pixels,alpha_values = img_alpha_values, hdr = False, sRGB = False, image_location=myprops.export_path)
-
 
 
         self.report({'INFO'}, 'Done')

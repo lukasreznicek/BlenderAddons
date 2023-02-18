@@ -35,10 +35,10 @@ def img1_alpha_callback(scene, context):
     items = []
     if painter2.image_1_rgb == 'OP0':
         items = []
-    elif painter2.image_1_rgb == 'OP1' or painter2.image_1_rgb == 'OP2' or painter2.image_1_rgb == 'OP3':
+    elif painter2.image_1_rgb == 'OP1' or painter2.image_1_rgb == 'OP2' or painter2.image_1_rgb == 'OP3': #LDR
         items.append(('OP1', 'Parent Index (Int as Float)',''))
         # items.append(('OP2', 'Number of Steps From Root',''))
-        # items.append(('OP3', 'Random 0-1 Value Per Element',''))
+        items.append(('OP3', 'Random 0-1 Value Per Element',''))
         # items.append(('OP4', 'Bounding Box Diameter',''))
         # items.append(('OP5', 'Selection Order (Int as Float)',''))
         items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
@@ -47,30 +47,28 @@ def img1_alpha_callback(scene, context):
         # items.append(('OP9', 'Object Z Height',''))
         items.append(('OP10', 'Parent Index (Float - Up to 2048)',''))
 
-    elif painter2.image_1_rgb == 'OP4' or painter2.image_1_rgb == 'OP5' or painter2.image_1_rgb == 'OP6' :
+    elif painter2.image_1_rgb == 'OP4' or painter2.image_1_rgb == 'OP5' or painter2.image_1_rgb == 'OP6': #HDR
         items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
         items.append(('OP3', 'Random 0-1 Value Per Element',''))
         # items.append(('OP11', 'X Extent Divided by 2048 - 2048 Max',''))
         # items.append(('OP12', 'Y Extent Divided by 2048 - 2048 Max',''))
         # items.append(('OP13', 'Z Extent Divided by 2048 - 2048 Max',''))
-
     return items
-
 
 
 def img2_alpha_callback(scene, context):
     painter2 = bpy.context.scene.pivot_painter_2
 
     items = []
-    if bpy.context.scene.pivot_painter_2.image_1_rgb =='OP0':
+    if painter2.image_2_rgb == 'OP0':
         items = []
     elif painter2.image_2_rgb == 'OP1' or painter2.image_2_rgb == 'OP2' or painter2.image_2_rgb == 'OP3': #LDR
         items.append(('OP1', 'Parent Index (Int as Float)',''))
         # items.append(('OP2', 'Number of Steps From Root',''))
-        # items.append(('OP3', 'Random 0-1 Value Per Element',''))
+        items.append(('OP3', 'Random 0-1 Value Per Element',''))
         # items.append(('OP4', 'Bounding Box Diameter',''))
         # items.append(('OP5', 'Selection Order (Int as Float)',''))
-        # items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
+        items.append(('OP6', 'Normalized 0-1 Hierarchy position',''))
         # items.append(('OP7', 'Object X Width',''))
         # items.append(('OP8', 'Object Y Depth',''))
         # items.append(('OP9', 'Object Z Height',''))
@@ -84,8 +82,6 @@ def img2_alpha_callback(scene, context):
         # items.append(('OP13', 'Z Extent Divided by 2048 - 2048 Max',''))
     return items
 
-
-
 # Properties 
 # To acess properties: bpy.data.scenes['Scene'].pivot_painter_2
 # Is assigned by pointer property below in class registration.
@@ -93,10 +89,26 @@ class pivot_painter2_settings(bpy.types.PropertyGroup):
     # export_sm_prefix: bpy.props.StringProperty(name="Prefix", description="Name of the new UV set on selected", default="SM_", maxlen=1024,)
     # export_sm_suffix:bpy.props.StringProperty(name="Suffix", description="Name of the new UV set on selected", default="", maxlen=1024,)
 
-    image_1_rgb:bpy.props.EnumProperty(name= 'RGB', description= '',default = 1, items= [('OP0', 'Do Not Render',''),('OP1', 'Pivot Position (16-bit)',''),('OP2', 'Origin Position(16-bit)',''),('OP3', 'Origin Extents(16-bit)',''),('OP4', 'X Vector(8-bit)',''),('OP5', 'Y Vector(8-bit)',''),('OP6', 'Z Vector(8-bit)','')])
+    image_1_rgb:bpy.props.EnumProperty(name= 'RGB', description= '',default = 1, items= [
+    ('OP0', 'Do Not Render',''),
+    ('OP1', 'Pivot Position (16-bit)',''),
+    #('OP2', 'Origin Position(16-bit)',''),
+    #('OP3', 'Origin Extents(16-bit)',''),
+    ('OP4', 'X Vector(8-bit)',''),
+    ('OP5', 'Y Vector(8-bit)',''),
+    ('OP6', 'Z Vector(8-bit)','')])
     image_1_alpha:bpy.props.EnumProperty(name= 'Alpha', description= '', items= img1_alpha_callback)
  
-    image_2_rgb:bpy.props.EnumProperty(name= 'RGB', description= '',default = 4, items= [('OP0', 'Do Not Render',''),('OP1', 'Pivot Position (16-bit)',''),('OP2', 'Origin Position(16-bit)',''),('OP3', 'Origin Extents(16-bit)',''),('OP4', 'X Vector(8-bit)',''),('OP5', 'Y Vector(8-bit)',''),('OP6', 'Z Vector(8-bit)','')])
+    image_2_rgb:bpy.props.EnumProperty(name= 'RGB', description= '',default = 4, items= [
+    ('OP0', 'Do Not Render',''),
+    ('OP1', 'Pivot Position (16-bit)',''),
+    #('OP2', 'Origin Position(16-bit)',''),
+    #('OP3', 'Origin Extents(16-bit)',''),
+    ('OP4', 'X Vector(8-bit)',''),
+    ('OP5', 'Y Vector(8-bit)',''),
+    ('OP6', 'Z Vector(8-bit)','')])
+
+    
     image_2_alpha:bpy.props.EnumProperty(name= 'Alpha', description= '', items= img2_alpha_callback)
 
     export_path:bpy.props.StringProperty(name="Folder", description="Texture output location. \n// = .blend file location\n//..\ = .blend file parent folder", default="//", maxlen=1024,subtype='DIR_PATH')
