@@ -268,7 +268,7 @@ classes = [pivot_painter2_settings,VIEW3D_PT_pivot_painter2, OBJECT_OT_lr_pivot_
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-        bpy.types.Scene.pivot_painter_2 = bpy.props.PointerProperty(type=pivot_painter2_settings)
+    bpy.types.Scene.pivot_painter_2 = bpy.props.PointerProperty(type=pivot_painter2_settings)
 
 def unregister():
     for cls in classes:

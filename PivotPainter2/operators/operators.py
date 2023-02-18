@@ -119,9 +119,9 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         def wrapFindMaxBoundingDistanceWithLDScale(curVal):
             (clamp(ceil(curVal/8.0))) / 256.0 # up to 2048 units
             #clamp (curVal/(16.0 * 256.0)) 0.005 1.0 # 16 * 256  with a min scale of 16 or the smallest possible unit without hitting 0
+            pass
 
-
-	    def pixels_for_alpha_find_parent_object_array_index(object_array): #Parent Index ( Float - Up to 2048 )
+        def pixels_for_alpha_find_parent_object_array_index(object_array): #Parent Index ( Float - Up to 2048 )
             array_index = []
             for obj in object_array:
                 if obj.parent == None:
@@ -163,7 +163,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         def packVectorIntsIntoFloats (objectArray):
             tArray=[]
             for i in objectArray:
-                tArray.append([packTextureBits i[1],packTextureBits i[2],packTextureBits i[3]])
+                tArray.append([packTextureBits(i[1]),packTextureBits(i[2]),packTextureBits(i[3])])
             return tArray
 
         def pack_ints_into_floats(value_array):
@@ -293,9 +293,9 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         #---- IMAGE 1 Alpha ----
 
             if myprops.image_1_alpha == 'OP1': #Parent Index (Int as Float)
+                img_alpha_values = []
                 temp = pixels_for_alpha_find_parent_object_array_index(object_list)
-                for value in pixels_for_alpha_find_parent_object_array_index:
-                    img_alpha_values.append(pack_ints_into_floats(value))
+                img_alpha_values=pack_ints_into_floats(temp)
             
             if myprops.image_1_alpha == 'OP3': #Random 0-1 Value Per Element
                 img_alpha_values = pixels_for_alpha_random_value_per_element(len(object_list))
