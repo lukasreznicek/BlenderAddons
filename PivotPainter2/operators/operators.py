@@ -85,7 +85,7 @@ class OBJECT_OT_lr_pivot_painter_export(bpy.types.Operator):
         def pixels_for_pivot_position_16_bit(objects):
             pixels= []            
             for i in range(0,len(objects)):
-                pixels.append([objects[i].location[0]*100, (1-(objects[i].location[1]*100)), objects[i].location[2]*100])
+                pixels.append([objects[i].matrix_world[0][3]*100, (1-(objects[i].matrix_world[1][3]*100)), objects[i].matrix_world[2][3]*100])
 
             return pixels
 
